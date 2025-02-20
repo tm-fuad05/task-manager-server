@@ -26,6 +26,25 @@ async function run() {
     const database = client.db("TaskManagerDB");
     const collection = database.collection("collection");
 
+    // Middleware
+    const verifyToken = (req, res, next) => {
+      if (!req.headers.authorization) {
+        return res.status(401).json({ message: "Unauthorized access!" });
+      }
+      const token = req.headers.authorization.split(" ")[1];
+      jwt.verify(
+        token,
+        process.env.ACCESS_TOKEN_SECRET,
+        function (err, decoded) {
+          if (err) {
+            return res.status(401).json({ message: "Unauthorized access!" });
+          }
+          req.decoded = decoded;
+          next();
+        }
+      );
+    };
+
     // Jwt Api
     app.post("/jwt", async (req, res) => {
       try {
