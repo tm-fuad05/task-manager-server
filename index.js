@@ -26,6 +26,30 @@ async function run() {
     const database = client.db("TaskManagerDB");
     const collection = database.collection("collection");
 
+    // Jwt Api
+    app.post("/jwt", async (req, res) => {
+      try {
+        const user = req.body;
+        if (!user?.email) {
+          return res
+            .status(400)
+            .json({ success: false, message: "invalid email" });
+        }
+        const token = jwt.sign(user, process.env.ACCESS_SEC_TOKEN, {
+          expiresIn: "24h",
+        });
+
+        return res.status(200).json({
+          success: true,
+          token,
+        });
+      } catch (error) {
+        return res
+          .status(500)
+          .json({ success: false, message: "Internal server error." });
+      }
+    });
+
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
