@@ -20,6 +20,20 @@ const client = new MongoClient(uri, {
   },
 });
 
+async function run() {
+  try {
+    // Database & Collection
+    const database = client.db("TaskManagerDB");
+    const collection = database.collection("collection");
+
+    console.log(
+      "Pinged your deployment. You successfully connected to MongoDB!"
+    );
+  } finally {
+  }
+}
+run().catch(console.dir);
+
 app.get("/", (req, res) => {
   res.send("Hello World!!!");
 });
