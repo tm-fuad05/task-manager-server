@@ -159,6 +159,22 @@ async function run() {
       }
     });
 
+    // Task: TO-DO
+    app.get("/tasks/to-do", async (req, res) => {
+      try {
+        const result = await taskCollection
+          .find({ category: "To-Do" })
+          .toArray();
+
+        return res.status(200).json(result);
+      } catch (error) {
+        console.error(error);
+        return res
+          .status(500)
+          .json({ success: false, message: "Internal server error." });
+      }
+    });
+
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
