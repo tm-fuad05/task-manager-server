@@ -3,7 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 const jwt = require("jsonwebtoken");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const port = process.env.PORT || 5000;
 
 // Middleware
@@ -159,46 +159,59 @@ async function run() {
       }
     });
 
-    // Task: TO-DO
-    app.get("/tasks/to-do", async (req, res) => {
+    app.patch("/tasks/:id", async (req, res) => {
       try {
-        const result = await taskCollection
-          .find({ category: "To-Do" })
-          .toArray();
+        const id = req.params.id;
+        const newTaskData = req.body;
 
-        return res.status(200).json(result);
+        if (!newTaskData) {
+          return res
+            .status(404)
+            .json({ success: false, message: "Task not found." });
+        }
+        const filter = { _id: new ObjectId(id) };
+        const updatedTaskData = {
+          $set: {
+            title: newTaskData.title,
+            description: newTaskData.description,
+            category: newTaskData.category,
+          },
+        };
+
+        const existingTask = await taskCollection.findOne(filter);
+        if (!existingTask) {
+          return res
+            .status(404)
+            .json({ success: false, message: "Task not found." });
+        }
+
+        const result = await taskCollection.updateOne(filter, updatedTaskData);
+        if (result.modifiedCount > 0) {
+          return res.status(200).json({ success: true });
+        }
+        return res
+          .status(200)
+          .json({ success: false, message: "No changes made." });
       } catch (error) {
         console.error(error);
         return res
-          .status(500)
-          .json({ success: false, message: "Internal server error." });
+          .status(400)
+          .json({ success: false, message: "Bad request." });
       }
     });
 
-    // Task: In-progress
-    app.get("/tasks/in-progress", async (req, res) => {
+    app.delete("/tasks/:id", async (req, res) => {
       try {
-        const result = await taskCollection
-          .find({ category: "In Progress" })
-          .toArray();
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
 
-        return res.status(200).json(result);
-      } catch (error) {
-        console.error(error);
+        const result = await taskCollection.deleteOne(query);
+        if (result.deletedCount > 0) {
+          return res.status(200).json({ success: true });
+        }
         return res
           .status(500)
           .json({ success: false, message: "Internal server error." });
-      }
-    });
-
-    // Task: Done
-    app.get("/tasks/done", async (req, res) => {
-      try {
-        const result = await taskCollection
-          .find({ category: "Done" })
-          .toArray();
-
-        return res.status(200).json(result);
       } catch (error) {
         console.error(error);
         return res
